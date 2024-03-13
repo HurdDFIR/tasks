@@ -1,0 +1,8 @@
+out/
+build/
+dist/
+old/
+*.txt
+*.spec
+*.exe
+tests.py
