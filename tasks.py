@@ -5,6 +5,7 @@ import re
 import xmltodict
 from flatdict import FlatDict
 import csv
+from datetime import timezone as tz, datetime as dt
 
 class AllScheduledTasks:
     def __init__(self, task_root):
@@ -48,9 +49,11 @@ class ScheduledTask:
         self.name = self.path.name
         self.tree = ET.parse(self.path)
         self.root = self.tree.getroot()
+        self.last_modified = dt.fromtimestamp(self.path.stat().st_mtime, tz.utc).strftime('%Y-%m-%d %H:%M:%S')
         self.xml = ET.tostring(self.root, encoding='utf-8', method='xml')
         self.data = self._get_task_data()
-        self.properties = self._get_task_properties()        
+        self.properties = self._get_task_properties()
+        
 
     def _get_task_data(self):
         data = xmltodict.parse(self.xml)
@@ -61,6 +64,7 @@ class ScheduledTask:
             # get rid of namespace prefixes 
             temp_data[re.sub(r'ns0:','',k)] = v
 
+        task_data['@LastModified'] = self.last_modified
         task_data['@Name'] = self.name 
         task_data['@Path'] = self.path
         task_data.update(temp_data)
@@ -74,7 +78,7 @@ class ScheduledTask:
         return properties
 
 def main():
-    __version__ = '1.0.0'
+    __version__ = '1.0.1'
     __author__ = 'Stephen Hurd | @HurdDFIR'
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
